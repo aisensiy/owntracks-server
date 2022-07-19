@@ -7,6 +7,8 @@ from flask import Flask, request
 
 
 FILENAME = "data.jsonl"
+TIMEZONE = "Asia/Shanghai"
+PING_PANG_THRESHOLD = 120
 
 app = Flask(__name__)
 
@@ -32,7 +34,8 @@ def report():
         data = f.readlines()
     data = [json.loads(item) for item in data]
     data = [item for item in data if item.get("event") in ["leave", "enter"]]
-    chinaTz = pytz.timezone("Asia/Shanghai")
+    chinaTz = pytz.timezone(TIMEZONE)
+
     # datetime from unix timestamp
     data = [
         {
@@ -47,16 +50,20 @@ def report():
             "datetime": datetime.fromtimestamp(item["tst"], chinaTz).strftime(
                 "%m/%d %H:%M"
             ),
+            "tst": item["tst"]
         }
         for item in data
     ]
-    # remove item with same time
+
+    # remove item with very close time
     masks = [False] * len(data)
     for i in range(1, len(data)):
-        if data[i]["datetime"] == data[i - 1]["datetime"]:
+        if abs(data[i]["tst"] - data[i - 1]["tst"]) < PING_PANG_THRESHOLD and \
+           data[i]["desc"] == data[i - 1]["desc"]:
             masks[i - 1] = True
-            masks[i] = True
+            masks[i] = True if data[i]["event"] != data[i - 1]["event"] else False
     data = [item for i, item in enumerate(data) if not masks[i]]
+
     # group by time
     grouped = OrderedDict()
     for item in data:
@@ -69,7 +76,7 @@ def report():
             date,
             "\n".join(
                 [
-                    f"    {item['time']}\t{item['event']}\t{item['desc']}"
+                    f"\t{item['time']}\t{item['event']}\t{item['desc']}"
                     for item in items
                 ]
             ),
