@@ -10,3 +10,9 @@ This is python flask version of OwnTracks Server. Set the endpoint in app to `ht
 4. Remove wrong ping-pang location.
 
 
+## How to run
+
+```bash
+pip install -r requirements.txt
+python main.py
+```
