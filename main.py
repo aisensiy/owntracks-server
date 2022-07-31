@@ -55,13 +55,24 @@ def report():
         for item in data
     ]
 
-    # remove item with very close time
+    # remove item with very close time and same event
     masks = [False] * len(data)
     for i in range(1, len(data)):
         if abs(data[i]["tst"] - data[i - 1]["tst"]) < PING_PANG_THRESHOLD and \
-           data[i]["desc"] == data[i - 1]["desc"]:
+           data[i]["desc"] == data[i - 1]["desc"] and \
+           data[i]["event"] == data[i - 1]["event"]:
             masks[i - 1] = True
-            masks[i] = True if data[i]["event"] != data[i - 1]["event"] else False
+            masks[i] = False
+    data = [item for i, item in enumerate(data) if not masks[i]]
+
+    # remove item with very close time and different event
+    masks = [False] * len(data)
+    for i in range(1, len(data)):
+        if abs(data[i]["tst"] - data[i - 1]["tst"]) < PING_PANG_THRESHOLD and \
+           data[i]["desc"] == data[i - 1]["desc"] and \
+           data[i]["event"] != data[i - 1]["event"]:
+            masks[i - 1] = True
+            masks[i] = True
     data = [item for i, item in enumerate(data) if not masks[i]]
 
     # group by time
