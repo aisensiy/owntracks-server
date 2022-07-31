@@ -6,6 +6,18 @@ from datetime import datetime
 from flask import Flask, request
 
 
+def time2human(sec):
+    result = ""
+    if sec // 3600 > 0:
+        result += str(sec // 3600) + "h"
+        sec %= 3600
+    if sec // 60 > 0:
+        result += str(sec // 60) + "m"
+        sec %= 60
+    result += str(sec) + "s"
+    return result
+
+
 FILENAME = "data.jsonl"
 TIMEZONE = "Asia/Shanghai"
 PING_PANG_THRESHOLD = 120
@@ -82,12 +94,20 @@ def report():
             grouped[item["date"]] = []
         grouped[item["date"]].append(item)
 
+    # add time diff
+    for date in grouped:
+        grouped[date][0]["time_diff"] = 0
+        if len(grouped[date]) > 1:
+            for i in range(1, len(grouped[date])):
+                grouped[date][i]["time_diff"] = grouped[date][i]["tst"] - \
+                    grouped[date][i - 1]["tst"]
+
     result = [
         [
             date,
             "\n".join(
                 [
-                    f"\t{item['time']}\t{item['event']}\t{item['desc']}"
+                    f"\t{item['time']}\t{item['event']}\t{item['desc']}\t{time2human(item['time_diff'])}"
                     for item in items
                 ]
             ),
