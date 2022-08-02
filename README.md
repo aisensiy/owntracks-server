@@ -8,6 +8,7 @@ This is python flask version of OwnTracks Server. Set the endpoint in app to `ht
 2. No db dependency, only save to file.
 3. A report api to show your region enter and leave.
 4. Remove wrong ping-pang location.
+5. Show time diff between each location change.
 
 
 ## How to run
