@@ -48,25 +48,6 @@ def report():
     data = [item for item in data if item.get("event") in ["leave", "enter"]]
     chinaTz = pytz.timezone(TIMEZONE)
 
-    # datetime from unix timestamp
-    data = [
-        {
-            "desc": item["desc"],
-            "event": item["event"],
-            "date": datetime.fromtimestamp(item["tst"], chinaTz).strftime(
-                "%m/%d"
-            ),
-            "time": datetime.fromtimestamp(item["tst"], chinaTz).strftime(
-                "%H:%M"
-            ),
-            "datetime": datetime.fromtimestamp(item["tst"], chinaTz).strftime(
-                "%m/%d %H:%M"
-            ),
-            "tst": item["tst"]
-        }
-        for item in data
-    ]
-
     # remove item with very close time and same event
     masks = [False] * len(data)
     for i in range(1, len(data)):
@@ -86,6 +67,34 @@ def report():
             masks[i - 1] = True
             masks[i] = True
     data = [item for i, item in enumerate(data) if not masks[i]]
+
+    # fix the error
+    for item in data:
+        # remove 3 minutes if leave
+        if item["event"] == "leave":
+            item["tst"] -= 180
+        # add 3 minutes if enter
+        if item["event"] == "enter":
+            item["tst"] += 180
+
+    # add date time datetime
+    data = [
+        {
+            "desc": item["desc"],
+            "event": item["event"],
+            "date": datetime.fromtimestamp(item["tst"], chinaTz).strftime(
+                "%m/%d"
+            ),
+            "time": datetime.fromtimestamp(item["tst"], chinaTz).strftime(
+                "%H:%M"
+            ),
+            "datetime": datetime.fromtimestamp(item["tst"], chinaTz).strftime(
+                "%m/%d %H:%M"
+            ),
+            "tst": item["tst"]
+        }
+        for item in data
+    ]
 
     # group by time
     grouped = OrderedDict()
